@@ -1,0 +1,56 @@
+version: '3'
+
+networks:
+  migration_tools:
+    # external: true
+
+services:
+  go:
+    container_name: mt_app_go
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./src:/code
+    stdin_open: true
+    tty: true
+    ports:
+      - "8080:8080"
+    networks:
+      - migration_tools
+    # external_links:
+    #   - migrate/migrate:4
+  # migrate:
+  #   image: migrate/migrate:4
+  #   volumes:
+  #     - .:/code
+  #   networks:
+  #     - migration_tools
+  mysql:
+    container_name: mt_app_mysql
+    image: mysql:8.0.29
+    volumes:
+      - ./docker/mysql:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_USER=adib
+      - MYSQL_PASSWORD=sarirejo
+      - MYSQL_ROOT_PASSWORD=sarirejo
+      - MYSQL_DATABASE=migration_tools
+    restart: unless-stopped
+    networks:
+      - migration_tools
+  pma:
+    container_name: mt_app_pma
+    image: phpmyadmin:5.1.3
+    ports:
+        - "8083:80"
+    environment:
+      MYSQL_ROOT_PASSWORD: sarirejo
+      PMA_HOST: mysql
+      PMA_USER: adib
+      PMA_PASSWORD: sarirejo
+    networks:
+      - migration_tools
+    
